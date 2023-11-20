@@ -1,7 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEngine.Serialization;
-
 public class Player : MonoBehaviour, IKitchenObjectParent
 {
     public static Player Instance { private set; get; }
@@ -9,7 +7,7 @@ public class Player : MonoBehaviour, IKitchenObjectParent
 
     public class OnSelectedCounterChangedEventArgs : EventArgs
     {
-        public ClearCounter selectedCounter;
+        public BaseCounter selectedCounter;
     }
     
     [SerializeField] private GameInput gameInput;
@@ -19,7 +17,7 @@ public class Player : MonoBehaviour, IKitchenObjectParent
     
     private bool _isWalking;
     private Vector3 _lastInteractDir;
-    private ClearCounter _selectedCounter;
+    private BaseCounter _selectedCounter;
     private KitchenObject _kitchenObject;
 
     private void Awake()
@@ -83,10 +81,10 @@ public class Player : MonoBehaviour, IKitchenObjectParent
         if (Physics.Raycast(transform.position, _lastInteractDir, out RaycastHit raycastHit,
                 interactDistance, countersLayerMask))
         {
-            if (raycastHit.transform.TryGetComponent(out ClearCounter clearCounter))
+            if (raycastHit.transform.TryGetComponent(out BaseCounter baseCounter))
             {
-                if (clearCounter != null && clearCounter != _selectedCounter)
-                    SetSelectedCounter(clearCounter);
+                if (baseCounter != null && baseCounter != _selectedCounter)
+                    SetSelectedCounter(baseCounter);
             }
             else
                 SetSelectedCounter(null);
@@ -100,7 +98,7 @@ public class Player : MonoBehaviour, IKitchenObjectParent
         return _isWalking;
     }
 
-    private void SetSelectedCounter(ClearCounter selectedCounter)
+    private void SetSelectedCounter(BaseCounter selectedCounter)
     {
         _selectedCounter = selectedCounter;
         
