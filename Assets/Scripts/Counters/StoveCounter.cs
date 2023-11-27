@@ -95,20 +95,46 @@ public class StoveCounter : BaseCounter, IHasProgress
     public override void Interact(Player player)
     {
 
-        if (HasKitchenObject() && !player.HasKitchenObject())
+        if (HasKitchenObject())
         {
-            GetKitchenObject().SetKitchenObjectParent(player);
-            _state = State.Idle;
-            
-            OnProgressChanged?.Invoke(this, new IHasProgress.OnProgressChangedEventArgs
+            if (!player.HasKitchenObject())
             {
-                ProgressNormalized = 0f
-            });
-            
-            OnStateChanged?.Invoke(this, new OnStateChangedEventArgs
+                GetKitchenObject().SetKitchenObjectParent(player);
+                _state = State.Idle;
+
+                OnProgressChanged?.Invoke(this, new IHasProgress.OnProgressChangedEventArgs
+                {
+                    ProgressNormalized = 0f
+                });
+
+                OnStateChanged?.Invoke(this, new OnStateChangedEventArgs
+                {
+                    State = _state
+                });
+            }
+            else
             {
-                State = _state
-            });
+                if (!player.GetKitchenObject().TryGetPlate(out var plateKitchenObject)) 
+                    return;
+                
+                if (!plateKitchenObject!.TryAddIngredient(GetKitchenObject().GetKitchenObjectSO())) 
+                    return;
+                
+                GetKitchenObject().DestroySelf();
+                    
+                _state = State.Idle;
+                _fryingTimer = 0f;
+            
+                OnStateChanged?.Invoke(this, new OnStateChangedEventArgs
+                {
+                    State = _state
+                });
+            
+                OnProgressChanged?.Invoke(this, new IHasProgress.OnProgressChangedEventArgs
+                {
+                    ProgressNormalized = _fryingTimer / _fryingRecipeSO.fryingTimeMax
+                });
+            }
         }
         else if (player.HasKitchenObject() && !HasKitchenObject() && HasRecipeWithInput(
                      player.GetKitchenObject().GetKitchenObjectSO()))
