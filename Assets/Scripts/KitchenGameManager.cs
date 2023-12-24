@@ -4,6 +4,8 @@ using UnityEngine;
 public class KitchenGameManager : MonoBehaviour
 {
     public static KitchenGameManager Instance { get; private set; }
+
+    public event EventHandler OnStateChanged;
     
     private enum State
     {
@@ -36,6 +38,7 @@ public class KitchenGameManager : MonoBehaviour
                 {
                     _state = State.CountdownToStart;
                     _timer = CountdownToStartTimerMax;
+                    OnStateChanged?.Invoke(this, EventArgs.Empty);
                 }
                 break;
             case State.CountdownToStart:
@@ -43,12 +46,14 @@ public class KitchenGameManager : MonoBehaviour
                 if (_timer < 0f) {
                     _state = State.GamePlaying;
                     _timer = GamePlayingTimerMax;
+                    OnStateChanged?.Invoke(this, EventArgs.Empty);
                 }
                 break;
             case State.GamePlaying:
                 _timer -= Time.deltaTime;
                 if (_timer < 0f) {
                     _state = State.GameOver;
+                    OnStateChanged?.Invoke(this, EventArgs.Empty);
                 }              
                 break;
             case State.GameOver:
@@ -62,5 +67,18 @@ public class KitchenGameManager : MonoBehaviour
     public bool IsGamePlaying()
     {
         return _state == State.GamePlaying;
+    }
+
+    public bool IsCountdownToStartActive()
+    {
+        return _state == State.CountdownToStart;
+    }
+
+    public float GetCountdownToStartTimer()
+    {
+        if (_state == State.CountdownToStart)
+            return _timer;
+        else
+            return 0;
     }
 }
