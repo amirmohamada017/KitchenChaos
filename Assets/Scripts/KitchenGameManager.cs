@@ -18,7 +18,7 @@ public class KitchenGameManager : MonoBehaviour
     private State _state;
     private const float WaitingToStartTimerMax = 1f;
     private const float CountdownToStartTimerMax = 3f;
-    private const float GamePlayingTimerMax = 10f;
+    private const float GamePlayingTimerMax = 20f;
     private float _timer;
 
     private void Awake()
@@ -85,5 +85,17 @@ public class KitchenGameManager : MonoBehaviour
             return _timer;
         else
             return 0;
+    }
+
+    public float GetGamePlayingTimerNormalized()
+    {
+        return _state switch
+        {
+            State.GameOver => 1,
+            State.GamePlaying => 1 - (_timer / GamePlayingTimerMax),
+            State.CountdownToStart => 0,
+            State.WaitingToStart => 0,
+            _ => 1
+        };
     }
 }
