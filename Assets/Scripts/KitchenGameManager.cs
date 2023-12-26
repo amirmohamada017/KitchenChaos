@@ -20,12 +20,23 @@ public class KitchenGameManager : MonoBehaviour
     private const float CountdownToStartTimerMax = 3f;
     private const float GamePlayingTimerMax = 20f;
     private float _timer;
+    private bool _isGamePause = false;
 
     private void Awake()
     {
         Instance = this;
         _state = State.WaitingToStart;
         _timer = WaitingToStartTimerMax;
+    }
+
+    private void Start()
+    {
+        GameInput.Instance.OnPauseAction += GameInput_OnPauseAction;
+    }
+
+    private void GameInput_OnPauseAction(object sender, EventArgs e)
+    {
+        TogglePauseGame();
     }
 
     private void Update()
@@ -58,10 +69,7 @@ public class KitchenGameManager : MonoBehaviour
                 break;
             case State.GameOver:
                 break;
-            default:
-                throw new ArgumentOutOfRangeException();
         }
-        Debug.Log(_state);
     }
 
     public bool IsGamePlaying()
@@ -83,8 +91,7 @@ public class KitchenGameManager : MonoBehaviour
     {
         if (_state == State.CountdownToStart)
             return _timer;
-        else
-            return 0;
+        return 0;
     }
 
     public float GetGamePlayingTimerNormalized()
@@ -97,5 +104,11 @@ public class KitchenGameManager : MonoBehaviour
             State.WaitingToStart => 0,
             _ => 1
         };
+    }
+
+    private void TogglePauseGame()
+    {
+        Time.timeScale = _isGamePause ? 0f : 1f;
+        _isGamePause = !_isGamePause;
     }
 }
