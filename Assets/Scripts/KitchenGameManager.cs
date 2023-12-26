@@ -22,11 +22,12 @@ public class KitchenGameManager : MonoBehaviour
     private const float CountdownToStartTimerMax = 3f;
     private const float GamePlayingTimerMax = 20f;
     private float _timer;
-    private bool _isGamePause = false;
+    private bool _isGamePause;
 
     private void Awake()
     {
         Instance = this;
+        _isGamePause = false;
         _state = State.WaitingToStart;
         _timer = WaitingToStartTimerMax;
     }
@@ -108,7 +109,7 @@ public class KitchenGameManager : MonoBehaviour
         };
     }
 
-    private void TogglePauseGame()
+    public void TogglePauseGame()
     {
         _isGamePause = !_isGamePause; 
         
