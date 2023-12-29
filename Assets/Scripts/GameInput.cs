@@ -11,6 +11,7 @@ public class GameInput : MonoBehaviour
     public event EventHandler OnInteractAction;
     public event EventHandler OnInteractAlternateAction;
     public event EventHandler OnPauseAction;
+    public event EventHandler OnBindingRebind;
 
     public enum Binding
     {
@@ -23,7 +24,12 @@ public class GameInput : MonoBehaviour
         MoveLeft,
         MoveLeftArrow,
         Interact,
-        InteractAlt
+        InteractAlt,
+        Pause,
+        MoveGamepad,
+        InteractGamepad,
+        InteractAltGamepad,
+        PauseGamepad
     }
     
     private PlayerControls _playerControls;
@@ -99,6 +105,16 @@ public class GameInput : MonoBehaviour
                 return _playerControls.Player.Move.bindings[8].ToDisplayString();
             case Binding.MoveRightArrow:
                 return _playerControls.Player.Move.bindings[9].ToDisplayString();
+            case Binding.MoveGamepad:
+                return _playerControls.Player.Move.bindings[10].ToDisplayString();
+            case Binding.Pause:
+                return "ECS";
+            case Binding.InteractGamepad:
+                return _playerControls.Player.Interact.bindings[1].ToDisplayString();
+            case Binding.InteractAltGamepad:
+                return _playerControls.Player.InteractAlternate.bindings[1].ToDisplayString();
+            case Binding.PauseGamepad:
+                return _playerControls.Player.Pause.bindings[1].ToDisplayString();
         }
     }
 
@@ -162,6 +178,8 @@ public class GameInput : MonoBehaviour
             
             PlayerPrefs.SetString(PlayerPrefsBindings, _playerControls.SaveBindingOverridesAsJson());
             PlayerPrefs.Save();
+            
+            OnBindingRebind?.Invoke(this, EventArgs.Empty);
         }).Start();
 
     }
