@@ -1,8 +1,9 @@
 using System;
+using Unity.Netcode;
 using UnityEngine;
-public class Player : MonoBehaviour, IKitchenObjectParent
+public class Player : NetworkBehaviour, IKitchenObjectParent
 {
-    public static Player Instance { private set; get; }
+    //public static Player Instance { private set; get; }
 
     public event EventHandler OnPickedSomething;
     public event EventHandler<OnSelectedCounterChangedEventArgs> OnSelectedCounterChanged;
@@ -12,7 +13,6 @@ public class Player : MonoBehaviour, IKitchenObjectParent
         public BaseCounter selectedCounter;
     }
     
-    [SerializeField] private GameInput gameInput;
     [SerializeField] private float moveSpeed = 7f;
     [SerializeField] private LayerMask countersLayerMask;
     [SerializeField] private Transform kitchenObjectHoldPoint;
@@ -24,16 +24,13 @@ public class Player : MonoBehaviour, IKitchenObjectParent
 
     private void Awake()
     {
-        if (Instance != null)
-            Debug.LogError("there is more than one player instance!");
-        
-        Instance = this;
+        //Instance = this;
     }
 
     private void Start()
     {
-        gameInput.OnInteractAction += GameInput_OnInteractAction;
-        gameInput.OnInteractAlternateAction += GameInput_OnInteractAlternateAction;
+        GameInput.Instance.OnInteractAction += GameInput_OnInteractAction;
+        GameInput.Instance.OnInteractAlternateAction += GameInput_OnInteractAlternateAction;
     }
 
     private void GameInput_OnInteractAction(object sender, System.EventArgs e)
@@ -54,7 +51,7 @@ public class Player : MonoBehaviour, IKitchenObjectParent
 
     private void Update()
     {
-        Vector2 inputVector = gameInput.GetMovementVectorNormalized();
+        Vector2 inputVector = GameInput.Instance.GetMovementVectorNormalized();
         var moveDir = new Vector3(inputVector.x, 0, inputVector.y);
         HandleMovement(moveDir);
         HandleInteractions(moveDir);
