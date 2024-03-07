@@ -51,8 +51,11 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
 
     private void Update()
     {
-        Vector2 inputVector = GameInput.Instance.GetMovementVectorNormalized();
+        if (!IsOwner) return;
+        
+        var inputVector = GameInput.Instance.GetMovementVectorNormalized();
         var moveDir = new Vector3(inputVector.x, 0, inputVector.y);
+        
         HandleMovement(moveDir);
         HandleInteractions(moveDir);
     }
