@@ -3,7 +3,10 @@ using Unity.Netcode;
 using UnityEngine;
 public class Player : NetworkBehaviour, IKitchenObjectParent
 {
-    //public static Player Instance { private set; get; }
+    public static Player LocalInstance { private set; get; }
+    
+    public static event EventHandler OnAnyPlayerSpawned;
+    public static event EventHandler OnAnyPickedSomething;
 
     public event EventHandler OnPickedSomething;
     public event EventHandler<OnSelectedCounterChangedEventArgs> OnSelectedCounterChanged;
@@ -21,16 +24,24 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
     private Vector3 _lastInteractDir;
     private BaseCounter _selectedCounter;
     private KitchenObject _kitchenObject;
-
-    private void Awake()
+    
+    public static void ResetStaticData()
     {
-        //Instance = this;
+        OnAnyPlayerSpawned = null;
     }
-
+    
     private void Start()
     {
         GameInput.Instance.OnInteractAction += GameInput_OnInteractAction;
         GameInput.Instance.OnInteractAlternateAction += GameInput_OnInteractAlternateAction;
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        if (IsOwner)
+            LocalInstance = this;
+        
+        OnAnyPlayerSpawned?.Invoke(this, EventArgs.Empty);
     }
 
     private void GameInput_OnInteractAction(object sender, System.EventArgs e)
@@ -132,6 +143,7 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
 
         if (kitchenObject != null)
         {
+            OnPickedSomething?.Invoke(this, EventArgs.Empty);
             OnPickedSomething?.Invoke(this, EventArgs.Empty);
         }
     }
