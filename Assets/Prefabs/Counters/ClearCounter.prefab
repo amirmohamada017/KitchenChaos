@@ -63,6 +63,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8106700587686282457, guid: 6c9af6d844ac70a4a8fabdb8a850bedf,
+        type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 951099334
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
@@ -98,8 +103,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d766cc48d674cc14e9d396351878f985, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  kitchenObjectSO: {fileID: 11400000, guid: 1eb74331ac28d7440b74ae34a23d0763, type: 2}
   counterTopPoint: {fileID: 4156782916207913993}
+  kitchenObjectSO: {fileID: 11400000, guid: 1eb74331ac28d7440b74ae34a23d0763, type: 2}
 --- !u!4 &4156782916207913993 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3048451680077394105, guid: 6c9af6d844ac70a4a8fabdb8a850bedf,
