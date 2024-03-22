@@ -7,7 +7,7 @@ public class FollowTransform : MonoBehaviour
 
     public void SetTargetTransform(Transform targetTransform)
     {
-        _targetTransform = transform;
+        _targetTransform = targetTransform;
     }
 
     private void LateUpdate()

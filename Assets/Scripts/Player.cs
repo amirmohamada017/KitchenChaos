@@ -144,7 +144,7 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
         if (kitchenObject != null)
         {
             OnPickedSomething?.Invoke(this, EventArgs.Empty);
-            OnPickedSomething?.Invoke(this, EventArgs.Empty);
+            OnAnyPickedSomething?.Invoke(this, EventArgs.Empty);
         }
     }
 
