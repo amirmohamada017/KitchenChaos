@@ -133,9 +133,9 @@ public class StoveCounter : BaseCounter, IHasProgress
                 if (!plateKitchenObject!.TryAddIngredient(GetKitchenObject().GetKitchenObjectSO())) 
                     return;
                 
-                GetKitchenObject().DestroySelf();
+                KitchenObject.DestroyKitchenObject(GetKitchenObject());
                     
-                _state.Value = State.Idle;
+                SetServerIdleServerRpc();
                 _fryingTimer.Value = 0f;
             }
         }
