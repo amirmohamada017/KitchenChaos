@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 public class Player : NetworkBehaviour, IKitchenObjectParent
@@ -18,7 +19,9 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
     
     [SerializeField] private float moveSpeed = 7f;
     [SerializeField] private LayerMask countersLayerMask;
+    [SerializeField] private LayerMask collisionsLayerMask;
     [SerializeField] private Transform kitchenObjectHoldPoint;
+    [SerializeField] private List<Vector3> spawnPositions;
     
     private bool _isWalking;
     private Vector3 _lastInteractDir;
@@ -40,6 +43,8 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
     {
         if (IsOwner)
             LocalInstance = this;
+        
+        transform.position = spawnPositions[(int) OwnerClientId];
         
         OnAnyPlayerSpawned?.Invoke(this, EventArgs.Empty);
     }
@@ -76,21 +81,21 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
         var moveDirX = new Vector3(moveDir.x, 0, 0);
         var moveDirZ = new Vector3(0, 0, moveDir.z);
         
-        float moveDistance = moveSpeed * Time.deltaTime;
-        float playerHeight = 2f;
-        float playerRadius = .7f;
-        
-        bool canMoveX = !Physics.CapsuleCast(transform.position,
-            (transform.position + Vector3.up * playerHeight), playerRadius, moveDirX, moveDistance);
-        bool canMoveZ = !Physics.CapsuleCast(transform.position,
-            (transform.position + Vector3.up * playerHeight), playerRadius, moveDirZ, moveDistance);
+        var moveDistance = moveSpeed * Time.deltaTime;
+        const float playerHeight = 2f;
+        const float playerRadius = .7f;
+
+        var canMoveX = !Physics.BoxCast(transform.position, Vector3.one * playerRadius, 
+            moveDirX, Quaternion.identity, moveDistance, collisionsLayerMask);
+        var canMoveZ = !Physics.BoxCast(transform.position, Vector3.one * playerRadius, 
+            moveDirZ, Quaternion.identity, moveDistance, collisionsLayerMask);
         
         if (canMoveX)
             transform.position += moveDirX * moveDistance;
         if (canMoveZ)
             transform.position += moveDirZ * moveDistance;
         
-        var rotateSpeed = 10f;
+        const float rotateSpeed = 10f;
         transform.forward = Vector3.Slerp(transform.forward, moveDir, Time.deltaTime * rotateSpeed);
 
         _isWalking = moveDir != Vector3.zero;
