@@ -73,13 +73,13 @@ public class OptionsUI : MonoBehaviour
 
     private void Start()
     {
-        KitchenGameManager.Instance.OnGameUnPaused += KitchenGameManager_OnGameUnPaused;
+        KitchenGameManager.Instance.OnLocalGameUnPaused += KitchenGameManagerOnLocalGameUnPaused;
         UpdateVisual();
         HidePressToRebindKey();
         Hide();
     }
 
-    private void KitchenGameManager_OnGameUnPaused(object sender, EventArgs e)
+    private void KitchenGameManagerOnLocalGameUnPaused(object sender, EventArgs e)
     {
         Hide();
     }
