@@ -11,22 +11,18 @@ public class TutorialUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI keyInteractText;
     [SerializeField] private TextMeshProUGUI keyInteractAlternateText;
     [SerializeField] private TextMeshProUGUI keyPauseText;
-    [SerializeField] private TextMeshProUGUI keyGamepadMoveText;
-    [SerializeField] private TextMeshProUGUI keyGamepadInteractText;
-    [SerializeField] private TextMeshProUGUI keyGamepadInteractAlternateText;
-    [SerializeField] private TextMeshProUGUI keyGamepadPauseText;
 
     private void Start()
     {
         GameInput.Instance.OnBindingRebind += GameInput_OnBindingRebind;
-        KitchenGameManager.Instance.OnStateChanged += KitchenGameManager_OnStateChanged;
+        KitchenGameManager.Instance.OnLocalPlayerReadyChanged += KitchenGameManager_OnLocalPlayerReadyChanged;
         UpdateVisual();
         Show();
     }
 
-    private void KitchenGameManager_OnStateChanged(object sender, EventArgs e)
+    private void KitchenGameManager_OnLocalPlayerReadyChanged(object sender, EventArgs e)
     {
-        if (KitchenGameManager.Instance.IsCountdownToStartActive())
+        if (KitchenGameManager.Instance.IsLocalPlayerReady())
             Hide();
     }
 
