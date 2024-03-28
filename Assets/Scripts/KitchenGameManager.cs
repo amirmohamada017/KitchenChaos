@@ -31,6 +31,7 @@ public class KitchenGameManager : NetworkBehaviour
     private const float GamePlayingTimerMax = 90f;
     private bool _isLocalGamePaused;
     private bool _isLocalPlayerReady;
+    private bool _autoTestGamePausedState;
 
     private void Awake()
     {
@@ -47,10 +48,27 @@ public class KitchenGameManager : NetworkBehaviour
         GameInput.Instance.OnPauseAction += GameInput_OnPauseAction;
     }
 
+    private void LateUpdate()
+    {
+        if (_autoTestGamePausedState)
+        {
+            _autoTestGamePausedState = false;
+            TestGamePausedState();
+        }
+    }
+
     public override void OnNetworkSpawn()
     {
         _state.OnValueChanged += State_OnValueChanged;
         _isGamePaused.OnValueChanged += IsGamePaused_OnValueChanged;
+
+        if (IsServer)
+            NetworkManager.Singleton.OnClientDisconnectCallback += NetworkManager_OnClientDisconnectCallback;
+    }
+
+    private void NetworkManager_OnClientDisconnectCallback(ulong clientId)
+    {
+        _autoTestGamePausedState = true;
     }
 
     private void IsGamePaused_OnValueChanged(bool previousValue, bool newValue)
