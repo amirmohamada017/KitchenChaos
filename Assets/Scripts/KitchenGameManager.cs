@@ -241,4 +241,9 @@ public class KitchenGameManager : NetworkBehaviour
     {
         return _isLocalPlayerReady;
     }
+    
+    public bool IsWaitingToStart()
+    {
+        return _state.Value == State.WaitingToStart;
+    }
 }
