@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -9,22 +10,53 @@ public class KitchenGameMultiplayer : NetworkBehaviour
 
     public event EventHandler OnTryingToJoinGame;
     public event EventHandler OnFailedToJoinGame;
+    public event EventHandler OnPlayerDataNetworkListChanged;
     
     [SerializeField] private KitchenObjectListSO kitchenObjectsSO;
-    
+    [SerializeField] private List<Color> playerColors;
+
     private const int MaxSpawnedPlayerCount = 4;
+    private NetworkList<PlayerData> _playerDataNetworkList;
     
     private void Awake()
     {
         Instance = this;
         
         DontDestroyOnLoad(gameObject);
+
+        _playerDataNetworkList = new NetworkList<PlayerData>();
+        _playerDataNetworkList.OnListChanged += PlayerDataNetworkList_OnListChanged;
+    }
+
+    private void PlayerDataNetworkList_OnListChanged(NetworkListEvent<PlayerData> changeEvent)
+    {
+        OnPlayerDataNetworkListChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public void StartHost()
     {
         NetworkManager.Singleton.ConnectionApprovalCallback += NetworkManager_ConnectionApprovalCallback;
+        NetworkManager.Singleton.OnClientConnectedCallback += NetworkManager_OnClientConnectedCallback;
+        NetworkManager.Singleton.OnClientDisconnectCallback += NetworkManager_Server_OnClientDisconnectCallback;
         NetworkManager.Singleton.StartHost();
+    }
+    
+    private void NetworkManager_Server_OnClientDisconnectCallback(ulong clientId)
+    {
+        for (var i = 0; i < _playerDataNetworkList.Count; i++)
+        {
+            var playerData = _playerDataNetworkList[i];
+            if (playerData.clientId == clientId)
+            {
+                _playerDataNetworkList.RemoveAt(i);
+                break;
+            }
+        }
+    }
+
+    private void NetworkManager_OnClientConnectedCallback(ulong clientId)
+    {
+        _playerDataNetworkList.Add(new PlayerData(clientId, GetFirstUnusedColorIndex()));
     }
 
     private void NetworkManager_ConnectionApprovalCallback(
@@ -52,11 +84,11 @@ public class KitchenGameMultiplayer : NetworkBehaviour
     {
         OnTryingToJoinGame?.Invoke(this, EventArgs.Empty);
         
-        NetworkManager.Singleton.OnClientDisconnectCallback += NetworkManager_OnClientDisconnectCallback;
+        NetworkManager.Singleton.OnClientDisconnectCallback += NetworkManager_Client_OnClientDisconnectCallback;
         NetworkManager.Singleton.StartClient();
     }
 
-    private void NetworkManager_OnClientDisconnectCallback(ulong clientId)
+    private void NetworkManager_Client_OnClientDisconnectCallback(ulong clientId)
     {
         OnFailedToJoinGame?.Invoke(this, EventArgs.Empty);
     }
@@ -116,5 +148,100 @@ public class KitchenGameMultiplayer : NetworkBehaviour
         kitchenObjectNetworkObjectReference.TryGet(out var kitchenObjectNetworkObject);
         var kitchenObject = kitchenObjectNetworkObject.GetComponent<KitchenObject>();
         kitchenObject.ClearKitchenObjectOnParent();
+    }
+
+    public bool IsPlayerIndexConnected(int playerIndex)
+    {
+        return playerIndex < _playerDataNetworkList.Count;
+    }
+
+    public PlayerData GetPlayerDataFromPlayerIndex(int playerIndex)
+    {
+        return _playerDataNetworkList[playerIndex];
+    }
+
+    public Color GetPlayerColor(int colorIndex)
+    {
+        return playerColors[colorIndex];
+    }
+
+    public PlayerData GetPlayerData()
+    {
+        var clientId = NetworkManager.Singleton.LocalClientId;
+        return GetPlayerDataFromClientId(clientId);
+    }
+
+    public PlayerData GetPlayerDataFromClientId(ulong clientId)
+    {
+        foreach (var playerData in _playerDataNetworkList)
+        {
+            if (playerData.clientId == clientId)
+                return playerData;
+        }
+
+        return default;
+    }
+    
+    public int GetPlayerDataIndexFromClientId(ulong clientId)
+    {
+        for (var i = 0; i < _playerDataNetworkList.Count; i++)
+        {
+            if (_playerDataNetworkList[i].clientId == clientId)
+                return i;
+        }
+
+        return -1;
+    }
+
+    public void ChangePlayerColor(int colorIndex)
+    {
+        ChangePlayerColorServerRpc(colorIndex);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void ChangePlayerColorServerRpc(int colorIndex, ServerRpcParams serverRpcParams = default)
+    {
+        var playerDataIndex = GetPlayerDataIndexFromClientId(serverRpcParams.Receive.SenderClientId);
+        ChangePlayerColorClientRpc(colorIndex, playerDataIndex);
+    }
+
+    [ClientRpc]
+    private void ChangePlayerColorClientRpc(int colorIndex, int playerDataIndex)
+    {
+        if (!IsColorAvailable(colorIndex))
+            return;
+        
+        var playerData = _playerDataNetworkList[playerDataIndex];
+        playerData.colorIndex = colorIndex;
+        _playerDataNetworkList[playerDataIndex] = playerData;
+    }
+    
+
+    private bool IsColorAvailable(int colorIndex)
+    {
+        foreach (var playerData in _playerDataNetworkList)
+        {
+            if (playerData.colorIndex == colorIndex)
+                return false;
+        }
+
+        return true;
+    }
+    
+    private int GetFirstUnusedColorIndex()
+    {
+        for (var i = 0; i < playerColors.Count; i++)
+        {
+            if (IsColorAvailable(i))
+                return i;
+        }
+        
+        return -1;
+    }
+
+    public void KickPlayer(ulong clientId)
+    {
+        NetworkManager.Singleton.DisconnectClient(clientId);
+        NetworkManager_Server_OnClientDisconnectCallback(clientId);
     }
 }
