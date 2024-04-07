@@ -15,7 +15,7 @@ public class KitchenGameMultiplayer : NetworkBehaviour
     [SerializeField] private KitchenObjectListSO kitchenObjectsSO;
     [SerializeField] private List<Color> playerColors;
 
-    private const int MaxSpawnedPlayerCount = 4;
+    public const int MaxPlayerAmount = 4;
     private NetworkList<PlayerData> _playerDataNetworkList;
     
     private void Awake()
@@ -70,7 +70,7 @@ public class KitchenGameMultiplayer : NetworkBehaviour
             return;
         }
 
-        if (NetworkManager.Singleton.ConnectedClientsIds.Count >= MaxSpawnedPlayerCount)
+        if (NetworkManager.Singleton.ConnectedClientsIds.Count >= MaxPlayerAmount)
         {
             connectionApprovalResponse.Approved = false;
             connectionApprovalResponse.Reason = "Max player count reached!";
