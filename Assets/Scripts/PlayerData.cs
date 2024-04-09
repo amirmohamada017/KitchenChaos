@@ -1,20 +1,19 @@
 using System;
+using Unity.Collections;
 using Unity.Netcode;
 
 public struct PlayerData : IEquatable<PlayerData>, INetworkSerializable
 {
     public ulong clientId;
     public int colorIndex;
-
-    public PlayerData(ulong clientId, int colorIndex)
-    {
-        this.clientId = clientId;
-        this.colorIndex = colorIndex;
-    }
-
+    public FixedString64Bytes playerName;
+    
     public bool Equals(PlayerData other)
     {
-        return clientId == other.clientId && colorIndex == other.colorIndex;
+        return 
+            clientId == other.clientId &&
+            colorIndex == other.colorIndex &&
+            playerName == other.playerName;
     }
 
     public override bool Equals(object obj)
@@ -31,5 +30,6 @@ public struct PlayerData : IEquatable<PlayerData>, INetworkSerializable
     {
         serializer.SerializeValue(ref clientId);
         serializer.SerializeValue(ref colorIndex);
+        serializer.SerializeValue(ref playerName);
     }
 }

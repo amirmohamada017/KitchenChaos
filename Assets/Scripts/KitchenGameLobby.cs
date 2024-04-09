@@ -8,10 +8,8 @@ using UnityEngine;
 public class KitchenGameLobby : MonoBehaviour
 {
     public static KitchenGameLobby Instance { get; private set; }
-    
+
     private Lobby _joinedLobby;
-    private const float HeartbeatInterval = 15f;
-    private float _heartbeatTimer = HeartbeatInterval;
     private void Awake()
     {
         Instance = this;
@@ -20,25 +18,7 @@ public class KitchenGameLobby : MonoBehaviour
         
         InitializeUnityAuthentication();
     }
-
-    private void Update()
-    {
-        HandleHeartbeat();
-    }
-
-    private void HandleHeartbeat()
-    {
-        if (IsLobbyHost())
-        {
-            _heartbeatTimer -= Time.deltaTime;
-            if (_heartbeatTimer < 0)
-            {
-                _heartbeatTimer = HeartbeatInterval;
-                LobbyService.Instance.SendHeartbeatPingAsync(_joinedLobby.Id);
-            }
-        }
-    }
-
+    
     private bool IsLobbyHost()
     {
         return _joinedLobby != null && _joinedLobby.HostId == AuthenticationService.Instance.PlayerId;
