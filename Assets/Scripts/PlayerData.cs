@@ -7,12 +7,14 @@ public struct PlayerData : IEquatable<PlayerData>, INetworkSerializable
     public ulong clientId;
     public int colorIndex;
     public FixedString64Bytes playerName;
+    public FixedString64Bytes playerId;
     
     public bool Equals(PlayerData other)
     {
         return 
             clientId == other.clientId &&
             colorIndex == other.colorIndex &&
+            playerId == other.playerId &&
             playerName == other.playerName;
     }
 
@@ -31,5 +33,6 @@ public struct PlayerData : IEquatable<PlayerData>, INetworkSerializable
         serializer.SerializeValue(ref clientId);
         serializer.SerializeValue(ref colorIndex);
         serializer.SerializeValue(ref playerName);
+        serializer.SerializeValue(ref playerId);
     }
 }
