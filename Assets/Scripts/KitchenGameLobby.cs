@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Unity.Services.Authentication;
 using Unity.Services.Core;
 using Unity.Services.Lobbies;
@@ -14,8 +15,21 @@ public class KitchenGameLobby : MonoBehaviour
     public event EventHandler OnJoinStarted;
     public event EventHandler OnQuickJoinFailed;
     public event EventHandler OnJoinFailed;
+    public event EventHandler<OnLobbyListChangedEventArgs> OnLobbyListChanged;
+    
+    public class OnLobbyListChangedEventArgs : EventArgs
+    {
+        public List<Lobby> lobbyList;
+    }
 
     private Lobby _joinedLobby;
+    private float _listLobbiesTimer;
+
+    private void Update()
+    {
+        HandlePeriodicListLobbies();
+    }
+    
     private void Awake()
     {
         Instance = this;
@@ -97,6 +111,22 @@ public class KitchenGameLobby : MonoBehaviour
         }
     }
 
+    public async void JoinById(string lobbyId)
+    {
+        OnJoinStarted?.Invoke(this, EventArgs.Empty);
+        try
+        {
+            _joinedLobby = await LobbyService.Instance.JoinLobbyByIdAsync(lobbyId);
+            
+            KitchenGameMultiplayer.Instance.StartClient();
+        }
+        catch (LobbyServiceException e)
+        {
+            Debug.Log(e);
+            OnJoinFailed?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
     public Lobby GetLobby()
     {
         return _joinedLobby;
@@ -147,6 +177,45 @@ public class KitchenGameLobby : MonoBehaviour
             catch (LobbyServiceException e)
             {
                 Debug.Log(e);
+            }
+        }
+    }
+
+    private async void ListLobbies()
+    {
+        try
+        {
+            var queryLobbiesOptions = new QueryLobbiesOptions
+            {
+                Filters = new List<QueryFilter>
+                {
+                    new QueryFilter(QueryFilter.FieldOptions.AvailableSlots, "0", QueryFilter.OpOptions.GT)
+                }
+            };
+        
+            var queryResponse = await LobbyService.Instance.QueryLobbiesAsync(queryLobbiesOptions);
+        
+            OnLobbyListChanged?.Invoke(this, new OnLobbyListChangedEventArgs
+            {
+                lobbyList = queryResponse.Results
+            });
+        }
+        catch (LobbyServiceException e)
+        {
+            Debug.Log(e);
+        }
+    }
+    
+    private void HandlePeriodicListLobbies()
+    {
+        if (_joinedLobby == null && AuthenticationService.Instance.IsSignedIn)
+        {
+            _listLobbiesTimer -= Time.deltaTime;
+            if (_listLobbiesTimer < 0f)
+            {
+                const float listLobbiesTimerMax = 3f;
+                _listLobbiesTimer += listLobbiesTimerMax;
+                ListLobbies();
             }
         }
     }
