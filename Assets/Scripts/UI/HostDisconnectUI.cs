@@ -1,4 +1,3 @@
-using System;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
@@ -6,6 +5,14 @@ using UnityEngine.UI;
 public class HostDisconnectUI : MonoBehaviour
 {
     [SerializeField] private Button playAgainButton;
+
+    private void Awake()
+    {
+        playAgainButton.onClick.AddListener(() =>
+        {
+            Loader.Load(Loader.Scene.MainMenuScene);
+        });
+    }
 
     private void Start()
     {
